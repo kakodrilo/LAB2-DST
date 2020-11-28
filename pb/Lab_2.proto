@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+package pb;
+
+service DataNode{
+    rpc UpploadChunks(stream Chunk) returns (Response);
+    rpc DowloadChunks(RequestChunk) returns (Chunk);
+    rpc StateRequest(Empty) returns (Empty);
+    rpc ProposalRequest(Proposal) returns (Response);
+}
+
+service NameNode{
+    rpc FinalProposal(Proposal) returns (Empty);
+    rpc FileRequest(Empty) returns (stream File);
+    rpc AddressRquest(File) returns (stream ChunkAddress);
+}
+
+message Empty{
+}
+
+message Response{
+    string response = 1;
+}
+
+message Chunk{
+    string chunk_id = 1;
+    bytes chunk = 2;
+}
+
+message RequestChunk{
+    string chunk_id = 1;
+}
+
+message Proposal{
+    int32 node_1 = 1;
+    int32 node_2 = 2;
+    int32 node_3 = 3;
+    string file_name = 4;
+}
+
+message File{
+    string file_name = 1;
+}
+
+message ChunkAddress{
+    string chunk_id =1;
+    string ip = 2;
+}
