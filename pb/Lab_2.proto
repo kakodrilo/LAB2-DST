@@ -22,10 +22,10 @@ message Response{
 }
 
 message Proposal{
-    string file_name = 1;
-    string chunks_dn1 = 2;
-    string chunks_dn2 = 3;
-    string chunks_dn3 = 4;
+    string fileName = 1;
+    string chunksDn1 = 2;
+    string chunksDn2 = 3;
+    string chunksDn3 = 4;
 }
 
 message Chunk{
@@ -34,7 +34,7 @@ message Chunk{
 }
 
 message RequestChunk{
-    string chunk_id = 1;
+    string chunkId = 1;
 }
 
 message File{
