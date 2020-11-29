@@ -19,8 +19,7 @@ const _ = grpc.SupportPackageIsVersion7
 type DataNodeClient interface {
 	UpploadChunks(ctx context.Context, opts ...grpc.CallOption) (DataNode_UpploadChunksClient, error)
 	DowloadChunks(ctx context.Context, in *RequestChunk, opts ...grpc.CallOption) (*Chunk, error)
-	StateRequest(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error)
-	ProposalRequest(ctx context.Context, in *Proposal, opts ...grpc.CallOption) (*Response, error)
+	ProposalRequest(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Response, error)
 }
 
 type dataNodeClient struct {
@@ -74,16 +73,7 @@ func (c *dataNodeClient) DowloadChunks(ctx context.Context, in *RequestChunk, op
 	return out, nil
 }
 
-func (c *dataNodeClient) StateRequest(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error) {
-	out := new(Empty)
-	err := c.cc.Invoke(ctx, "/pb.DataNode/StateRequest", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *dataNodeClient) ProposalRequest(ctx context.Context, in *Proposal, opts ...grpc.CallOption) (*Response, error) {
+func (c *dataNodeClient) ProposalRequest(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Response, error) {
 	out := new(Response)
 	err := c.cc.Invoke(ctx, "/pb.DataNode/ProposalRequest", in, out, opts...)
 	if err != nil {
@@ -98,8 +88,7 @@ func (c *dataNodeClient) ProposalRequest(ctx context.Context, in *Proposal, opts
 type DataNodeServer interface {
 	UpploadChunks(DataNode_UpploadChunksServer) error
 	DowloadChunks(context.Context, *RequestChunk) (*Chunk, error)
-	StateRequest(context.Context, *Empty) (*Empty, error)
-	ProposalRequest(context.Context, *Proposal) (*Response, error)
+	ProposalRequest(context.Context, *Empty) (*Response, error)
 	mustEmbedUnimplementedDataNodeServer()
 }
 
@@ -113,10 +102,7 @@ func (UnimplementedDataNodeServer) UpploadChunks(DataNode_UpploadChunksServer) e
 func (UnimplementedDataNodeServer) DowloadChunks(context.Context, *RequestChunk) (*Chunk, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DowloadChunks not implemented")
 }
-func (UnimplementedDataNodeServer) StateRequest(context.Context, *Empty) (*Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method StateRequest not implemented")
-}
-func (UnimplementedDataNodeServer) ProposalRequest(context.Context, *Proposal) (*Response, error) {
+func (UnimplementedDataNodeServer) ProposalRequest(context.Context, *Empty) (*Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ProposalRequest not implemented")
 }
 func (UnimplementedDataNodeServer) mustEmbedUnimplementedDataNodeServer() {}
@@ -176,26 +162,8 @@ func _DataNode_DowloadChunks_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
-func _DataNode_StateRequest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Empty)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(DataNodeServer).StateRequest(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/pb.DataNode/StateRequest",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DataNodeServer).StateRequest(ctx, req.(*Empty))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _DataNode_ProposalRequest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Proposal)
+	in := new(Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -207,7 +175,7 @@ func _DataNode_ProposalRequest_Handler(srv interface{}, ctx context.Context, dec
 		FullMethod: "/pb.DataNode/ProposalRequest",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DataNodeServer).ProposalRequest(ctx, req.(*Proposal))
+		return srv.(DataNodeServer).ProposalRequest(ctx, req.(*Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -219,10 +187,6 @@ var _DataNode_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DowloadChunks",
 			Handler:    _DataNode_DowloadChunks_Handler,
-		},
-		{
-			MethodName: "StateRequest",
-			Handler:    _DataNode_StateRequest_Handler,
 		},
 		{
 			MethodName: "ProposalRequest",
@@ -245,7 +209,7 @@ var _DataNode_serviceDesc = grpc.ServiceDesc{
 type NameNodeClient interface {
 	FinalProposal(ctx context.Context, in *Proposal, opts ...grpc.CallOption) (*Empty, error)
 	FileRequest(ctx context.Context, in *Empty, opts ...grpc.CallOption) (NameNode_FileRequestClient, error)
-	AddressRquest(ctx context.Context, in *File, opts ...grpc.CallOption) (NameNode_AddressRquestClient, error)
+	AddressRquest(ctx context.Context, in *File, opts ...grpc.CallOption) (*ChunkAddress, error)
 }
 
 type nameNodeClient struct {
@@ -297,36 +261,13 @@ func (x *nameNodeFileRequestClient) Recv() (*File, error) {
 	return m, nil
 }
 
-func (c *nameNodeClient) AddressRquest(ctx context.Context, in *File, opts ...grpc.CallOption) (NameNode_AddressRquestClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_NameNode_serviceDesc.Streams[1], "/pb.NameNode/AddressRquest", opts...)
+func (c *nameNodeClient) AddressRquest(ctx context.Context, in *File, opts ...grpc.CallOption) (*ChunkAddress, error) {
+	out := new(ChunkAddress)
+	err := c.cc.Invoke(ctx, "/pb.NameNode/AddressRquest", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &nameNodeAddressRquestClient{stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
-}
-
-type NameNode_AddressRquestClient interface {
-	Recv() (*ChunkAddress, error)
-	grpc.ClientStream
-}
-
-type nameNodeAddressRquestClient struct {
-	grpc.ClientStream
-}
-
-func (x *nameNodeAddressRquestClient) Recv() (*ChunkAddress, error) {
-	m := new(ChunkAddress)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
+	return out, nil
 }
 
 // NameNodeServer is the server API for NameNode service.
@@ -335,7 +276,7 @@ func (x *nameNodeAddressRquestClient) Recv() (*ChunkAddress, error) {
 type NameNodeServer interface {
 	FinalProposal(context.Context, *Proposal) (*Empty, error)
 	FileRequest(*Empty, NameNode_FileRequestServer) error
-	AddressRquest(*File, NameNode_AddressRquestServer) error
+	AddressRquest(context.Context, *File) (*ChunkAddress, error)
 	mustEmbedUnimplementedNameNodeServer()
 }
 
@@ -349,8 +290,8 @@ func (UnimplementedNameNodeServer) FinalProposal(context.Context, *Proposal) (*E
 func (UnimplementedNameNodeServer) FileRequest(*Empty, NameNode_FileRequestServer) error {
 	return status.Errorf(codes.Unimplemented, "method FileRequest not implemented")
 }
-func (UnimplementedNameNodeServer) AddressRquest(*File, NameNode_AddressRquestServer) error {
-	return status.Errorf(codes.Unimplemented, "method AddressRquest not implemented")
+func (UnimplementedNameNodeServer) AddressRquest(context.Context, *File) (*ChunkAddress, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddressRquest not implemented")
 }
 func (UnimplementedNameNodeServer) mustEmbedUnimplementedNameNodeServer() {}
 
@@ -404,25 +345,22 @@ func (x *nameNodeFileRequestServer) Send(m *File) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func _NameNode_AddressRquest_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(File)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
+func _NameNode_AddressRquest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(File)
+	if err := dec(in); err != nil {
+		return nil, err
 	}
-	return srv.(NameNodeServer).AddressRquest(m, &nameNodeAddressRquestServer{stream})
-}
-
-type NameNode_AddressRquestServer interface {
-	Send(*ChunkAddress) error
-	grpc.ServerStream
-}
-
-type nameNodeAddressRquestServer struct {
-	grpc.ServerStream
-}
-
-func (x *nameNodeAddressRquestServer) Send(m *ChunkAddress) error {
-	return x.ServerStream.SendMsg(m)
+	if interceptor == nil {
+		return srv.(NameNodeServer).AddressRquest(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pb.NameNode/AddressRquest",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NameNodeServer).AddressRquest(ctx, req.(*File))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 var _NameNode_serviceDesc = grpc.ServiceDesc{
@@ -433,16 +371,15 @@ var _NameNode_serviceDesc = grpc.ServiceDesc{
 			MethodName: "FinalProposal",
 			Handler:    _NameNode_FinalProposal_Handler,
 		},
+		{
+			MethodName: "AddressRquest",
+			Handler:    _NameNode_AddressRquest_Handler,
+		},
 	},
 	Streams: []grpc.StreamDesc{
 		{
 			StreamName:    "FileRequest",
 			Handler:       _NameNode_FileRequest_Handler,
-			ServerStreams: true,
-		},
-		{
-			StreamName:    "AddressRquest",
-			Handler:       _NameNode_AddressRquest_Handler,
 			ServerStreams: true,
 		},
 	},
