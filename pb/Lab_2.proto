@@ -3,15 +3,21 @@ syntax = "proto3";
 package pb;
 
 service DataNode{
-    rpc UploadChunks(stream Chunk) returns (Response);
-    rpc DownloadChunks(RequestChunk) returns (Chunk);
+    rpc UpploadChunks(stream Chunk) returns (Response);
+    rpc DowloadChunks(RequestChunk) returns (Chunk);
     rpc ProposalRequest(Empty) returns (Response);
 }
 
 service NameNode{
-    rpc FinalProposal(Proposal) returns (Empty);
+    rpc WriteLog(Write) returns (Response);
+    rpc FinalProposal(Proposal) returns (Proposal);
     rpc FileRequest(Empty) returns (stream File);
     rpc AddressRequest(File) returns (ChunkAddress);
+}
+
+message Write{
+    string fileName = 1;
+    repeated string addresses = 2;
 }
 
 message Empty{
@@ -23,9 +29,9 @@ message Response{
 
 message Proposal{
     string fileName = 1;
-    string chunksDn1 = 2;
-    string chunksDn2 = 3;
-    string chunksDn3 = 4;
+    repeated int32 chunksDn1 = 2;
+    repeated int32 chunksDn2 = 3;
+    repeated int32 chunksDn3 = 4;
 }
 
 message Chunk{
