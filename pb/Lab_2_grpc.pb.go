@@ -207,7 +207,7 @@ var _DataNode_serviceDesc = grpc.ServiceDesc{
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type NameNodeClient interface {
-	WriteLog(ctx context.Context, in *Write, opts ...grpc.CallOption) (*Response, error)
+	WriteLog(ctx context.Context, in *Proposal, opts ...grpc.CallOption) (*Response, error)
 	FinalProposal(ctx context.Context, in *Proposal, opts ...grpc.CallOption) (*Proposal, error)
 	FileRequest(ctx context.Context, in *Empty, opts ...grpc.CallOption) (NameNode_FileRequestClient, error)
 	AddressRequest(ctx context.Context, in *File, opts ...grpc.CallOption) (*ChunkAddress, error)
@@ -221,7 +221,7 @@ func NewNameNodeClient(cc grpc.ClientConnInterface) NameNodeClient {
 	return &nameNodeClient{cc}
 }
 
-func (c *nameNodeClient) WriteLog(ctx context.Context, in *Write, opts ...grpc.CallOption) (*Response, error) {
+func (c *nameNodeClient) WriteLog(ctx context.Context, in *Proposal, opts ...grpc.CallOption) (*Response, error) {
 	out := new(Response)
 	err := c.cc.Invoke(ctx, "/pb.NameNode/WriteLog", in, out, opts...)
 	if err != nil {
@@ -284,7 +284,7 @@ func (c *nameNodeClient) AddressRequest(ctx context.Context, in *File, opts ...g
 // All implementations must embed UnimplementedNameNodeServer
 // for forward compatibility
 type NameNodeServer interface {
-	WriteLog(context.Context, *Write) (*Response, error)
+	WriteLog(context.Context, *Proposal) (*Response, error)
 	FinalProposal(context.Context, *Proposal) (*Proposal, error)
 	FileRequest(*Empty, NameNode_FileRequestServer) error
 	AddressRequest(context.Context, *File) (*ChunkAddress, error)
@@ -295,7 +295,7 @@ type NameNodeServer interface {
 type UnimplementedNameNodeServer struct {
 }
 
-func (UnimplementedNameNodeServer) WriteLog(context.Context, *Write) (*Response, error) {
+func (UnimplementedNameNodeServer) WriteLog(context.Context, *Proposal) (*Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method WriteLog not implemented")
 }
 func (UnimplementedNameNodeServer) FinalProposal(context.Context, *Proposal) (*Proposal, error) {
@@ -321,7 +321,7 @@ func RegisterNameNodeServer(s *grpc.Server, srv NameNodeServer) {
 }
 
 func _NameNode_WriteLog_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Write)
+	in := new(Proposal)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -333,7 +333,7 @@ func _NameNode_WriteLog_Handler(srv interface{}, ctx context.Context, dec func(i
 		FullMethod: "/pb.NameNode/WriteLog",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(NameNodeServer).WriteLog(ctx, req.(*Write))
+		return srv.(NameNodeServer).WriteLog(ctx, req.(*Proposal))
 	}
 	return interceptor(ctx, in, info, handler)
 }

@@ -9,15 +9,10 @@ service DataNode{
 }
 
 service NameNode{
-    rpc WriteLog(Write) returns (Response);
+    rpc WriteLog(Proposal) returns (Response);
     rpc FinalProposal(Proposal) returns (Proposal);
     rpc FileRequest(Empty) returns (stream File);
     rpc AddressRequest(File) returns (ChunkAddress);
-}
-
-message Write{
-    string fileName = 1;
-    repeated string addresses = 2;
 }
 
 message Empty{
