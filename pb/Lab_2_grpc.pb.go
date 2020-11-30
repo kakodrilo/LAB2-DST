@@ -209,6 +209,7 @@ var _DataNode_serviceDesc = grpc.ServiceDesc{
 type NameNodeClient interface {
 	RequestWrite(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Response, error)
 	CentralizedWriteLog(ctx context.Context, in *Proposal, opts ...grpc.CallOption) (*Response, error)
+	DistribuitedWriteLog(ctx context.Context, in *Proposal, opts ...grpc.CallOption) (*Response, error)
 	FinalProposal(ctx context.Context, in *Proposal, opts ...grpc.CallOption) (*Proposal, error)
 	FileRequest(ctx context.Context, in *Empty, opts ...grpc.CallOption) (NameNode_FileRequestClient, error)
 	AddressRequest(ctx context.Context, in *File, opts ...grpc.CallOption) (*ChunkAddress, error)
@@ -234,6 +235,15 @@ func (c *nameNodeClient) RequestWrite(ctx context.Context, in *Empty, opts ...gr
 func (c *nameNodeClient) CentralizedWriteLog(ctx context.Context, in *Proposal, opts ...grpc.CallOption) (*Response, error) {
 	out := new(Response)
 	err := c.cc.Invoke(ctx, "/pb.NameNode/CentralizedWriteLog", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *nameNodeClient) DistribuitedWriteLog(ctx context.Context, in *Proposal, opts ...grpc.CallOption) (*Response, error) {
+	out := new(Response)
+	err := c.cc.Invoke(ctx, "/pb.NameNode/DistribuitedWriteLog", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -296,6 +306,7 @@ func (c *nameNodeClient) AddressRequest(ctx context.Context, in *File, opts ...g
 type NameNodeServer interface {
 	RequestWrite(context.Context, *Empty) (*Response, error)
 	CentralizedWriteLog(context.Context, *Proposal) (*Response, error)
+	DistribuitedWriteLog(context.Context, *Proposal) (*Response, error)
 	FinalProposal(context.Context, *Proposal) (*Proposal, error)
 	FileRequest(*Empty, NameNode_FileRequestServer) error
 	AddressRequest(context.Context, *File) (*ChunkAddress, error)
@@ -311,6 +322,9 @@ func (UnimplementedNameNodeServer) RequestWrite(context.Context, *Empty) (*Respo
 }
 func (UnimplementedNameNodeServer) CentralizedWriteLog(context.Context, *Proposal) (*Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CentralizedWriteLog not implemented")
+}
+func (UnimplementedNameNodeServer) DistribuitedWriteLog(context.Context, *Proposal) (*Response, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DistribuitedWriteLog not implemented")
 }
 func (UnimplementedNameNodeServer) FinalProposal(context.Context, *Proposal) (*Proposal, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method FinalProposal not implemented")
@@ -366,6 +380,24 @@ func _NameNode_CentralizedWriteLog_Handler(srv interface{}, ctx context.Context,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(NameNodeServer).CentralizedWriteLog(ctx, req.(*Proposal))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _NameNode_DistribuitedWriteLog_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Proposal)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NameNodeServer).DistribuitedWriteLog(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pb.NameNode/DistribuitedWriteLog",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NameNodeServer).DistribuitedWriteLog(ctx, req.(*Proposal))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -438,6 +470,10 @@ var _NameNode_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CentralizedWriteLog",
 			Handler:    _NameNode_CentralizedWriteLog_Handler,
+		},
+		{
+			MethodName: "DistribuitedWriteLog",
+			Handler:    _NameNode_DistribuitedWriteLog_Handler,
 		},
 		{
 			MethodName: "FinalProposal",

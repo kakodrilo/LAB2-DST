@@ -11,6 +11,7 @@ service DataNode{
 service NameNode{
     rpc RequestWrite(Empty) returns (Response);
     rpc CentralizedWriteLog(Proposal) returns (Response);
+    rpc DistribuitedWriteLog(Proposal) returns (Response);
     rpc FinalProposal(Proposal) returns (Proposal);
     rpc FileRequest(Empty) returns (stream File);
     rpc AddressRequest(File) returns (ChunkAddress);
