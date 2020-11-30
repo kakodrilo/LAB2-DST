@@ -3,13 +3,14 @@ syntax = "proto3";
 package pb;
 
 service DataNode{
-    rpc UpploadChunks(stream Chunk) returns (Response);
-    rpc DowloadChunks(RequestChunk) returns (Chunk);
+    rpc UploadChunks(stream Chunk) returns (Response);
+    rpc DownloadChunks(RequestChunk) returns (Chunk);
     rpc ProposalRequest(Empty) returns (Response);
 }
 
 service NameNode{
-    rpc WriteLog(Proposal) returns (Response);
+    rpc RequestWrite(Empty) returns (Response);
+    rpc CentralizedWriteLog(Proposal) returns (Response);
     rpc FinalProposal(Proposal) returns (Proposal);
     rpc FileRequest(Empty) returns (stream File);
     rpc AddressRequest(File) returns (ChunkAddress);
