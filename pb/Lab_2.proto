@@ -3,18 +3,19 @@ syntax = "proto3";
 package pb;
 
 service DataNode{
-    rpc UploadChunks(stream Chunk) returns (Response);
-    rpc DownloadChunks(RequestChunk) returns (Chunk);
-    rpc ProposalRequest(Empty) returns (Response);
+    rpc UploadChunks(stream Chunk) returns (Response); // cliente a data node
+    rpc DownloadChunks(RequestChunk) returns (Chunk); // cliente a data node
+    rpc SaveChunks(Chunk) returns (Response); // data node a data node
+    rpc ProposalRequest(Proposal) returns (Response); // data node a data node para escribir distribuited
 }
 
 service NameNode{
-    rpc RequestWrite(Empty) returns (Response);
-    rpc CentralizedWriteLog(Proposal) returns (Response);
-    rpc DistribuitedWriteLog(Proposal) returns (Response);
-    rpc FinalProposal(Proposal) returns (Proposal);
-    rpc FileRequest(Empty) returns (stream File);
-    rpc AddressRequest(File) returns (ChunkAddress);
+    rpc RequestWrite(Empty) returns (Response); // centralized
+    rpc CentralizedWriteLog(Proposal) returns (Response);  // centralized
+    rpc DistribuitedWriteLog(Proposal) returns (Response); // distribuited
+    rpc FinalProposal(Proposal) returns (Proposal); // centralized
+    rpc FileRequest(Empty) returns (stream File); // client  a namenode
+    rpc AddressRequest(File) returns (ChunkAddress); // cliento to namenode
 }
 
 message Empty{

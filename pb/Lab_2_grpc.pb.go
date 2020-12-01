@@ -19,7 +19,8 @@ const _ = grpc.SupportPackageIsVersion7
 type DataNodeClient interface {
 	UploadChunks(ctx context.Context, opts ...grpc.CallOption) (DataNode_UploadChunksClient, error)
 	DownloadChunks(ctx context.Context, in *RequestChunk, opts ...grpc.CallOption) (*Chunk, error)
-	ProposalRequest(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Response, error)
+	SaveChunks(ctx context.Context, in *Chunk, opts ...grpc.CallOption) (*Response, error)
+	ProposalRequest(ctx context.Context, in *Proposal, opts ...grpc.CallOption) (*Response, error)
 }
 
 type dataNodeClient struct {
@@ -73,7 +74,16 @@ func (c *dataNodeClient) DownloadChunks(ctx context.Context, in *RequestChunk, o
 	return out, nil
 }
 
-func (c *dataNodeClient) ProposalRequest(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Response, error) {
+func (c *dataNodeClient) SaveChunks(ctx context.Context, in *Chunk, opts ...grpc.CallOption) (*Response, error) {
+	out := new(Response)
+	err := c.cc.Invoke(ctx, "/pb.DataNode/SaveChunks", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *dataNodeClient) ProposalRequest(ctx context.Context, in *Proposal, opts ...grpc.CallOption) (*Response, error) {
 	out := new(Response)
 	err := c.cc.Invoke(ctx, "/pb.DataNode/ProposalRequest", in, out, opts...)
 	if err != nil {
@@ -88,7 +98,8 @@ func (c *dataNodeClient) ProposalRequest(ctx context.Context, in *Empty, opts ..
 type DataNodeServer interface {
 	UploadChunks(DataNode_UploadChunksServer) error
 	DownloadChunks(context.Context, *RequestChunk) (*Chunk, error)
-	ProposalRequest(context.Context, *Empty) (*Response, error)
+	SaveChunks(context.Context, *Chunk) (*Response, error)
+	ProposalRequest(context.Context, *Proposal) (*Response, error)
 	mustEmbedUnimplementedDataNodeServer()
 }
 
@@ -102,7 +113,10 @@ func (UnimplementedDataNodeServer) UploadChunks(DataNode_UploadChunksServer) err
 func (UnimplementedDataNodeServer) DownloadChunks(context.Context, *RequestChunk) (*Chunk, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DownloadChunks not implemented")
 }
-func (UnimplementedDataNodeServer) ProposalRequest(context.Context, *Empty) (*Response, error) {
+func (UnimplementedDataNodeServer) SaveChunks(context.Context, *Chunk) (*Response, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SaveChunks not implemented")
+}
+func (UnimplementedDataNodeServer) ProposalRequest(context.Context, *Proposal) (*Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ProposalRequest not implemented")
 }
 func (UnimplementedDataNodeServer) mustEmbedUnimplementedDataNodeServer() {}
@@ -162,8 +176,26 @@ func _DataNode_DownloadChunks_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _DataNode_SaveChunks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Chunk)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DataNodeServer).SaveChunks(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pb.DataNode/SaveChunks",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DataNodeServer).SaveChunks(ctx, req.(*Chunk))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _DataNode_ProposalRequest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Empty)
+	in := new(Proposal)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -175,7 +207,7 @@ func _DataNode_ProposalRequest_Handler(srv interface{}, ctx context.Context, dec
 		FullMethod: "/pb.DataNode/ProposalRequest",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DataNodeServer).ProposalRequest(ctx, req.(*Empty))
+		return srv.(DataNodeServer).ProposalRequest(ctx, req.(*Proposal))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -187,6 +219,10 @@ var _DataNode_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DownloadChunks",
 			Handler:    _DataNode_DownloadChunks_Handler,
+		},
+		{
+			MethodName: "SaveChunks",
+			Handler:    _DataNode_SaveChunks_Handler,
 		},
 		{
 			MethodName: "ProposalRequest",
