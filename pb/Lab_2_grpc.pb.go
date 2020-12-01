@@ -19,8 +19,8 @@ const _ = grpc.SupportPackageIsVersion7
 type DataNodeClient interface {
 	UploadChunks(ctx context.Context, opts ...grpc.CallOption) (DataNode_UploadChunksClient, error)
 	DownloadChunks(ctx context.Context, in *RequestChunk, opts ...grpc.CallOption) (*Chunk, error)
-	SaveChunks(ctx context.Context, in *Chunk, opts ...grpc.CallOption) (*Response, error)
-	ProposalRequest(ctx context.Context, in *Proposal, opts ...grpc.CallOption) (*Response, error)
+	SaveChunks(ctx context.Context, opts ...grpc.CallOption) (DataNode_SaveChunksClient, error)
+	ProposalRequest(ctx context.Context, in *ProposalAcces, opts ...grpc.CallOption) (*Response, error)
 }
 
 type dataNodeClient struct {
@@ -74,16 +74,41 @@ func (c *dataNodeClient) DownloadChunks(ctx context.Context, in *RequestChunk, o
 	return out, nil
 }
 
-func (c *dataNodeClient) SaveChunks(ctx context.Context, in *Chunk, opts ...grpc.CallOption) (*Response, error) {
-	out := new(Response)
-	err := c.cc.Invoke(ctx, "/pb.DataNode/SaveChunks", in, out, opts...)
+func (c *dataNodeClient) SaveChunks(ctx context.Context, opts ...grpc.CallOption) (DataNode_SaveChunksClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_DataNode_serviceDesc.Streams[1], "/pb.DataNode/SaveChunks", opts...)
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	x := &dataNodeSaveChunksClient{stream}
+	return x, nil
 }
 
-func (c *dataNodeClient) ProposalRequest(ctx context.Context, in *Proposal, opts ...grpc.CallOption) (*Response, error) {
+type DataNode_SaveChunksClient interface {
+	Send(*Chunk) error
+	CloseAndRecv() (*Response, error)
+	grpc.ClientStream
+}
+
+type dataNodeSaveChunksClient struct {
+	grpc.ClientStream
+}
+
+func (x *dataNodeSaveChunksClient) Send(m *Chunk) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *dataNodeSaveChunksClient) CloseAndRecv() (*Response, error) {
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	m := new(Response)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *dataNodeClient) ProposalRequest(ctx context.Context, in *ProposalAcces, opts ...grpc.CallOption) (*Response, error) {
 	out := new(Response)
 	err := c.cc.Invoke(ctx, "/pb.DataNode/ProposalRequest", in, out, opts...)
 	if err != nil {
@@ -98,8 +123,8 @@ func (c *dataNodeClient) ProposalRequest(ctx context.Context, in *Proposal, opts
 type DataNodeServer interface {
 	UploadChunks(DataNode_UploadChunksServer) error
 	DownloadChunks(context.Context, *RequestChunk) (*Chunk, error)
-	SaveChunks(context.Context, *Chunk) (*Response, error)
-	ProposalRequest(context.Context, *Proposal) (*Response, error)
+	SaveChunks(DataNode_SaveChunksServer) error
+	ProposalRequest(context.Context, *ProposalAcces) (*Response, error)
 	mustEmbedUnimplementedDataNodeServer()
 }
 
@@ -113,10 +138,10 @@ func (UnimplementedDataNodeServer) UploadChunks(DataNode_UploadChunksServer) err
 func (UnimplementedDataNodeServer) DownloadChunks(context.Context, *RequestChunk) (*Chunk, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DownloadChunks not implemented")
 }
-func (UnimplementedDataNodeServer) SaveChunks(context.Context, *Chunk) (*Response, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SaveChunks not implemented")
+func (UnimplementedDataNodeServer) SaveChunks(DataNode_SaveChunksServer) error {
+	return status.Errorf(codes.Unimplemented, "method SaveChunks not implemented")
 }
-func (UnimplementedDataNodeServer) ProposalRequest(context.Context, *Proposal) (*Response, error) {
+func (UnimplementedDataNodeServer) ProposalRequest(context.Context, *ProposalAcces) (*Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ProposalRequest not implemented")
 }
 func (UnimplementedDataNodeServer) mustEmbedUnimplementedDataNodeServer() {}
@@ -176,26 +201,34 @@ func _DataNode_DownloadChunks_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
-func _DataNode_SaveChunks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Chunk)
-	if err := dec(in); err != nil {
+func _DataNode_SaveChunks_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(DataNodeServer).SaveChunks(&dataNodeSaveChunksServer{stream})
+}
+
+type DataNode_SaveChunksServer interface {
+	SendAndClose(*Response) error
+	Recv() (*Chunk, error)
+	grpc.ServerStream
+}
+
+type dataNodeSaveChunksServer struct {
+	grpc.ServerStream
+}
+
+func (x *dataNodeSaveChunksServer) SendAndClose(m *Response) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *dataNodeSaveChunksServer) Recv() (*Chunk, error) {
+	m := new(Chunk)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
-	if interceptor == nil {
-		return srv.(DataNodeServer).SaveChunks(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/pb.DataNode/SaveChunks",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DataNodeServer).SaveChunks(ctx, req.(*Chunk))
-	}
-	return interceptor(ctx, in, info, handler)
+	return m, nil
 }
 
 func _DataNode_ProposalRequest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Proposal)
+	in := new(ProposalAcces)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -207,7 +240,7 @@ func _DataNode_ProposalRequest_Handler(srv interface{}, ctx context.Context, dec
 		FullMethod: "/pb.DataNode/ProposalRequest",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DataNodeServer).ProposalRequest(ctx, req.(*Proposal))
+		return srv.(DataNodeServer).ProposalRequest(ctx, req.(*ProposalAcces))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -221,10 +254,6 @@ var _DataNode_serviceDesc = grpc.ServiceDesc{
 			Handler:    _DataNode_DownloadChunks_Handler,
 		},
 		{
-			MethodName: "SaveChunks",
-			Handler:    _DataNode_SaveChunks_Handler,
-		},
-		{
 			MethodName: "ProposalRequest",
 			Handler:    _DataNode_ProposalRequest_Handler,
 		},
@@ -233,6 +262,11 @@ var _DataNode_serviceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "UploadChunks",
 			Handler:       _DataNode_UploadChunks_Handler,
+			ClientStreams: true,
+		},
+		{
+			StreamName:    "SaveChunks",
+			Handler:       _DataNode_SaveChunks_Handler,
 			ClientStreams: true,
 		},
 	},
@@ -245,7 +279,7 @@ var _DataNode_serviceDesc = grpc.ServiceDesc{
 type NameNodeClient interface {
 	RequestWrite(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Response, error)
 	CentralizedWriteLog(ctx context.Context, in *Proposal, opts ...grpc.CallOption) (*Response, error)
-	DistribuitedWriteLog(ctx context.Context, in *Proposal, opts ...grpc.CallOption) (*Response, error)
+	DistributedWriteLog(ctx context.Context, in *Proposal, opts ...grpc.CallOption) (*Response, error)
 	FinalProposal(ctx context.Context, in *Proposal, opts ...grpc.CallOption) (*Proposal, error)
 	FileRequest(ctx context.Context, in *Empty, opts ...grpc.CallOption) (NameNode_FileRequestClient, error)
 	AddressRequest(ctx context.Context, in *File, opts ...grpc.CallOption) (*ChunkAddress, error)
@@ -277,9 +311,9 @@ func (c *nameNodeClient) CentralizedWriteLog(ctx context.Context, in *Proposal, 
 	return out, nil
 }
 
-func (c *nameNodeClient) DistribuitedWriteLog(ctx context.Context, in *Proposal, opts ...grpc.CallOption) (*Response, error) {
+func (c *nameNodeClient) DistributedWriteLog(ctx context.Context, in *Proposal, opts ...grpc.CallOption) (*Response, error) {
 	out := new(Response)
-	err := c.cc.Invoke(ctx, "/pb.NameNode/DistribuitedWriteLog", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/pb.NameNode/DistributedWriteLog", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -342,7 +376,7 @@ func (c *nameNodeClient) AddressRequest(ctx context.Context, in *File, opts ...g
 type NameNodeServer interface {
 	RequestWrite(context.Context, *Empty) (*Response, error)
 	CentralizedWriteLog(context.Context, *Proposal) (*Response, error)
-	DistribuitedWriteLog(context.Context, *Proposal) (*Response, error)
+	DistributedWriteLog(context.Context, *Proposal) (*Response, error)
 	FinalProposal(context.Context, *Proposal) (*Proposal, error)
 	FileRequest(*Empty, NameNode_FileRequestServer) error
 	AddressRequest(context.Context, *File) (*ChunkAddress, error)
@@ -359,8 +393,8 @@ func (UnimplementedNameNodeServer) RequestWrite(context.Context, *Empty) (*Respo
 func (UnimplementedNameNodeServer) CentralizedWriteLog(context.Context, *Proposal) (*Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CentralizedWriteLog not implemented")
 }
-func (UnimplementedNameNodeServer) DistribuitedWriteLog(context.Context, *Proposal) (*Response, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DistribuitedWriteLog not implemented")
+func (UnimplementedNameNodeServer) DistributedWriteLog(context.Context, *Proposal) (*Response, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DistributedWriteLog not implemented")
 }
 func (UnimplementedNameNodeServer) FinalProposal(context.Context, *Proposal) (*Proposal, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method FinalProposal not implemented")
@@ -420,20 +454,20 @@ func _NameNode_CentralizedWriteLog_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
-func _NameNode_DistribuitedWriteLog_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _NameNode_DistributedWriteLog_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Proposal)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(NameNodeServer).DistribuitedWriteLog(ctx, in)
+		return srv.(NameNodeServer).DistributedWriteLog(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/pb.NameNode/DistribuitedWriteLog",
+		FullMethod: "/pb.NameNode/DistributedWriteLog",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(NameNodeServer).DistribuitedWriteLog(ctx, req.(*Proposal))
+		return srv.(NameNodeServer).DistributedWriteLog(ctx, req.(*Proposal))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -508,8 +542,8 @@ var _NameNode_serviceDesc = grpc.ServiceDesc{
 			Handler:    _NameNode_CentralizedWriteLog_Handler,
 		},
 		{
-			MethodName: "DistribuitedWriteLog",
-			Handler:    _NameNode_DistribuitedWriteLog_Handler,
+			MethodName: "DistributedWriteLog",
+			Handler:    _NameNode_DistributedWriteLog_Handler,
 		},
 		{
 			MethodName: "FinalProposal",

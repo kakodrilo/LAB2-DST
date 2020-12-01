@@ -5,17 +5,22 @@ package pb;
 service DataNode{
     rpc UploadChunks(stream Chunk) returns (Response); // cliente a data node
     rpc DownloadChunks(RequestChunk) returns (Chunk); // cliente a data node
-    rpc SaveChunks(Chunk) returns (Response); // data node a data node
-    rpc ProposalRequest(Proposal) returns (Response); // data node a data node para escribir distribuited
+    rpc SaveChunks(stream Chunk) returns (Response); // data node a data node
+    rpc ProposalRequest(ProposalAcces) returns (Response); // data node a data node para escribir distributed
 }
 
 service NameNode{
     rpc RequestWrite(Empty) returns (Response); // centralized
     rpc CentralizedWriteLog(Proposal) returns (Response);  // centralized
-    rpc DistribuitedWriteLog(Proposal) returns (Response); // distribuited
+    rpc DistributedWriteLog(Proposal) returns (Response); // distributed
     rpc FinalProposal(Proposal) returns (Proposal); // centralized
     rpc FileRequest(Empty) returns (stream File); // client  a namenode
     rpc AddressRequest(File) returns (ChunkAddress); // cliento to namenode
+}
+
+message ProposalAcces{
+    int32 NodeId = 1;
+    string timeStamp = 2;
 }
 
 message Empty{
@@ -33,7 +38,7 @@ message Proposal{
 }
 
 message Chunk{
-    string chunk_id = 1;
+    string chunkId = 1;
     bytes chunk = 2;
 }
 
